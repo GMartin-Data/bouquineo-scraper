@@ -36,7 +36,39 @@
   partout. **Number of reviews = 0 partout.** À confirmer sur les 1 000 en J2
   (jq) pour la note d'observation — mais ces champs semblent factices.
 
+### Spider `listing` (Phase 1, après-midi)
+- Implémenté : `items.py` (BookListItem), `parsing.py` (décodeurs prix/note/
+  stock, `None` sur inattendu), `pipelines.py` (JSONL au fil de l'eau, flush
+  par ligne), `spiders/listing.py` (pagination par `response.follow`).
+- **Jalon J1 atteint** : `uv run scrapy crawl listing` → 50 pages parcourues
+  (loggées), 1 000 items, 0 erreur, ~31 s. Vérifié au `jq` : 1 000 URLs
+  distinctes, notes 1-5 bien distribuées, zéro champ null, relance idempotente.
+- **6ᵉ piège découvert** : le texte du lien tronque les titres longs
+  (`A Light in the ...`) — le titre complet ne vit que dans l'attribut
+  `title` du `<a>`. Vérifié au shell avant d'écrire le spider.
+
+### Tests (décidés en débrief)
+- Positionnement : pour un scraper, la vérité vit sur le serveur — la
+  **détection** (garde-fous d'exécution, logs, CLOSESPIDER_ERRORCOUNT) prime
+  sur la prévention. Les tests unitaires ne gardent que la couche pure.
+- Fait : 11 tests pytest sur `parsing.py` (contrat : inattendu → None, jamais
+  d'exception) + 3 Scrapy contracts sur `parse()` (`scrapy check`, vérification
+  *en ligne* contre le site réel). CI écartée (projet 2 jours, rien à protéger
+  en continu).
+
 ### Blocages / résolutions
+- `uv run pytest` → `ModuleNotFoundError: No module named 'bouquineo'` alors
+  que `scrapy crawl` fonctionnait : layout applicatif flat = package jamais
+  installé dans le venv ; scrapy ajoute lui-même la racine à `sys.path`
+  (service du marqueur scrapy.cfg), pytest insère seulement `tests/`. Résolu
+  par `[tool.pytest.ini_options] pythonpath = ["."]` — on règle l'outil, pas
+  le projet (documenté en détail : `~/explain/`).
+- Dépréciations Scrapy 2.18 rencontrées : `start_urls` → idiome moderne
+  `async def start()` ; méthodes de pipeline sans argument `spider` → factory
+  `from_crawler` + `self.crawler.spider`.
+- Conflit Ruff (RUF012, attributs de classe mutables → `ClassVar`) vs Pyright
+  (`start_urls` est une variable d'instance dans la classe de base) : résolu
+  en adoptant `async def start()`, qui supprime l'objet du litige.
 - `scrapy shell -c` n'accepte qu'une *expression* Python (il passe par `eval`) :
   les `print(...)` multiples séparés par `;` lèvent une SyntaxError. Contourné
   avec un tuple de `print(...)`.
