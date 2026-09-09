@@ -11,4 +11,10 @@ dependencies = [
 [dependency-groups]
 dev = [
     "bpython>=0.26",
+    "pytest>=9.1.1",
 ]
+
+[tool.pytest.ini_options]
+# Flat application layout (not an installed package): put the repo root on
+# sys.path so tests can import the bouquineo package.
+pythonpath = ["."]
