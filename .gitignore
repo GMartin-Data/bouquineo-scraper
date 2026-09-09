@@ -1,0 +1,14 @@
+# Environments & secrets
+.venv/
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Scrapy runtime
+.scrapy/
+
+# Crawl outputs (working files; the final export is committed deliberately
+# at end of D2 with `git add -f` as a brief deliverable)
+data/*.jsonl
