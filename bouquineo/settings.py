@@ -1,87 +1,46 @@
-# Scrapy settings for bouquineo project
-#
-# For simplicity, this file contains only settings considered important or
-# commonly used. You can find more settings consulting the documentation:
-#
-#     https://docs.scrapy.org/en/latest/topics/settings.html
-#     https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
+"""Project-wide crawl configuration.
+
+Only deliberate choices live here; everything else keeps Scrapy's defaults.
+Each politeness setting answers an explicit requirement of the brief.
+"""
 
 BOT_NAME = "bouquineo"
 
 SPIDER_MODULES = ["bouquineo.spiders"]
 NEWSPIDER_MODULE = "bouquineo.spiders"
 
-ADDONS = {}
+# --- Politeness (brief: explicit UA, justified delay) ---------------------
 
+# Nominative User-Agent: identifies who crawls and why, with a contact.
+USER_AGENT = (
+    "bouquineo-training-scraper "
+    "(Gregory Martin; gregory.martin.data@gmail.com; 2-day training brief)"
+)
 
-# Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = "bouquineo (+http://www.yourdomain.com)"
-
-# Obey robots.txt rules
+# robots.txt returns 404 on this site (= no restrictions), but obeying is
+# the correct default posture and costs nothing.
 ROBOTSTXT_OBEY = True
 
-# Concurrency and throttling settings
-#CONCURRENT_REQUESTS = 16
+# 0.5s between requests, one request at a time: the full 1,000-page crawl
+# takes ~10 min — fast enough to finish well within a day, slow enough to
+# stay a negligible load for the server. Scrapy randomizes the actual delay
+# (0.5x-1.5x) to avoid a robotic request pattern.
+DOWNLOAD_DELAY = 0.5
 CONCURRENT_REQUESTS_PER_DOMAIN = 1
-DOWNLOAD_DELAY = 1
 
-# Disable cookies (enabled by default)
-#COOKIES_ENABLED = False
+# --- Robustness (brief: how many failures before giving up?) --------------
 
-# Disable Telnet Console (enabled by default)
-#TELNETCONSOLE_ENABLED = False
+# 10 errors ≈ 1% of the catalogue: above that, the site has likely changed
+# and every further request is wasted — stop and investigate.
+CLOSESPIDER_ERRORCOUNT = 10
 
-# Override the default request headers:
-#DEFAULT_REQUEST_HEADERS = {
-#    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-#    "Accept-Language": "en",
-#}
+# --- Output ---------------------------------------------------------------
 
-# Enable or disable spider middlewares
-# See https://docs.scrapy.org/en/latest/topics/spider-middleware.html
-#SPIDER_MIDDLEWARES = {
-#    "bouquineo.middlewares.BouquineoSpiderMiddleware": 543,
-#}
+ITEM_PIPELINES = {
+    "bouquineo.pipelines.JsonlWritePipeline": 300,
+}
 
-# Enable or disable downloader middlewares
-# See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "bouquineo.middlewares.BouquineoDownloaderMiddleware": 543,
-#}
+# INFO keeps logs demo-readable; DEBUG remains one -s LOG_LEVEL=DEBUG away.
+LOG_LEVEL = "INFO"
 
-# Enable or disable extensions
-# See https://docs.scrapy.org/en/latest/topics/extensions.html
-#EXTENSIONS = {
-#    "scrapy.extensions.telnet.TelnetConsole": None,
-#}
-
-# Configure item pipelines
-# See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "bouquineo.pipelines.BouquineoPipeline": 300,
-#}
-
-# Enable and configure the AutoThrottle extension (disabled by default)
-# See https://docs.scrapy.org/en/latest/topics/autothrottle.html
-#AUTOTHROTTLE_ENABLED = True
-# The initial download delay
-#AUTOTHROTTLE_START_DELAY = 5
-# The maximum download delay to be set in case of high latencies
-#AUTOTHROTTLE_MAX_DELAY = 60
-# The average number of requests Scrapy should be sending in parallel to
-# each remote server
-#AUTOTHROTTLE_TARGET_CONCURRENCY = 1.0
-# Enable showing throttling stats for every response received:
-#AUTOTHROTTLE_DEBUG = False
-
-# Enable and configure HTTP caching (disabled by default)
-# See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html#httpcache-middleware-settings
-#HTTPCACHE_ENABLED = True
-#HTTPCACHE_EXPIRATION_SECS = 0
-#HTTPCACHE_DIR = "httpcache"
-#HTTPCACHE_IGNORE_HTTP_CODES = []
-#HTTPCACHE_STORAGE = "scrapy.extensions.httpcache.FilesystemCacheStorage"
-
-# Set settings whose default value is deprecated to a future-proof value
 FEED_EXPORT_ENCODING = "utf-8"
