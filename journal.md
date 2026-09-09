@@ -1,5 +1,25 @@
 # Journal de bord — Brief scraping Bouquineo
 
+## Prochaine session (J2)
+
+État : jalon J1 atteint et commité (1 000 livres dans `data/listing.jsonl`,
+tests verts, historique poussé). Programme J2, dans l'ordre
+(roadmap détaillée : `../brief_scraping/notes/00-roadmap-previsionnelle.md`) :
+
+1. Spider `books` : un livre enrichi de bout en bout (UPC, prix, taxe, stock
+   réel, avis, description, catégorie), vérifié contre le navigateur, puis
+   généralisation. Sélecteurs déjà cartographiés dans la note 02.
+2. Robustesse — le cœur évalué du brief : reprise par relecture du JSONL dans
+   `async start()` (clé = URL, cf. « deux clés, deux moments » note 02),
+   errback + erreurs journalisées/sautées, mode échantillon `-a limit=N`.
+3. Crawl complet (~10 min) + test d'interruption volontaire (Ctrl-C, relance,
+   preuve de reprise dans les logs).
+4. Si le rythme tient : PostgreSQL (`db/schema.sql` + `db/load.py`, upsert
+   `ON CONFLICT (upc)`) — sinon glisse en J3 sans douleur.
+
+Rappel outillage : Postgres pas encore démarré (`cp env.example .env` puis
+`docker compose up -d`, à faire au moment du point 4).
+
 ## J1 — 2026-09-09
 
 ### Décisions de cadrage (avant-projet, 2026-09-08)
