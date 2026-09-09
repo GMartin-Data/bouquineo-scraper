@@ -30,6 +30,17 @@ def parse_rating(css_class: str | None) -> int | None:
     return RATING_WORDS.get(css_class.split()[-1])
 
 
+def parse_count(raw: str | None) -> int | None:
+    """Decode a bare integer string like '0' into an int (0).
+
+    Strict on purpose: the site shows a bare digit, so any surrounding text
+    means the page changed — return None and let the caller log it.
+    """
+    if raw is None:
+        return None
+    return int(raw) if raw.strip().isdigit() else None
+
+
 def parse_stock(availability: str | None) -> int | None:
     """Decode 'In stock (22 available)' into an int (22)."""
     if availability is None:

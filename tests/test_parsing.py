@@ -7,7 +7,7 @@ of killing the crawl.
 
 import pytest
 
-from bouquineo.parsing import parse_price, parse_rating, parse_stock
+from bouquineo.parsing import parse_count, parse_price, parse_rating, parse_stock
 
 
 class TestParsePrice:
@@ -34,6 +34,17 @@ class TestParseRating:
 
     def test_none_input(self):
         assert parse_rating(None) is None
+
+
+class TestParseCount:
+    def test_nominal(self):
+        assert parse_count("0") == 0
+
+    def test_not_a_number(self):
+        assert parse_count("many") is None
+
+    def test_none_input(self):
+        assert parse_count(None) is None
 
 
 class TestParseStock:
