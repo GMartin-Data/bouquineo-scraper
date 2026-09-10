@@ -1,1 +1,6 @@
+# Lessons inbox
+
+Leçons brutes datées, en attente du cycle `/immunize` (triage
+tri-destination : fix d'artefact, anticorps projet, anticorps global).
+
 - [2026-09-10] Ne jamais découper du JSONL avec str.splitlines() : il coupe sur les séparateurs Unicode (U+2028, U+2029, \x85…) que json.dumps(ensure_ascii=False) écrit bruts et légalement dans les chaînes. Itérer le fichier ouvert (for line in file), qui ne coupe que sur \n. Symptôme typique : jq/wc -l voient N lignes, Python en voit N+k. (scraping Bouquineo, 2026-09-10)

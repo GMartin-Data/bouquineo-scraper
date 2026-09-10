@@ -48,8 +48,7 @@ existe en deux exemplaires — même catégorie (Fantasy), seuls l'UPC, le prix
 une déduplication par titre les aurait fusionnés en perdant un vrai
 produit. La
 `PRIMARY KEY (upc)` a accepté les 1 000 lignes sans conflit — l'unicité de
-l'UPC est *prouvée* par le chargement, pas supposée. Toute jointure ou
-déduplication par titre aurait silencieusement perdu ou fusionné un livre.
+l'UPC est *prouvée* par le chargement, pas supposée.
 
 ## 5. Descriptions : trois artefacts de bac à sable
 

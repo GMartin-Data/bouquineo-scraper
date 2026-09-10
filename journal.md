@@ -75,8 +75,6 @@ travers un re-clone. (Pour montrer un crawl réel depuis un clone : déplacer
 
 ### Blocages / résolutions
 
-### Blocages / résolutions
-
 - **`splitlines()` casse du JSONL valide (U+2028/U+2029)** — `db/load.py`
   plante à sa première exécution (`JSONDecodeError: Unterminated string`)
   alors que `wc -l` et `jq` voient 1 000 lignes parfaitement valides. Le
