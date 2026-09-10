@@ -43,7 +43,10 @@ dominent — écarts faibles, à ne pas surinterpréter.
 ## 4. Titre ≠ clé : le doublon prévu par le brief existe
 
 **999 titres distincts pour 1 000 livres** : « The Star-Touched Queen »
-existe en deux exemplaires (UPC différents, catégories différentes). La
+existe en deux exemplaires — même catégorie (Fantasy), seuls l'UPC, le prix
+(46,02 £ vs 32,30 £) et le stock (14 vs 12) les distinguent : sans l'UPC,
+une déduplication par titre les aurait fusionnés en perdant un vrai
+produit. La
 `PRIMARY KEY (upc)` a accepté les 1 000 lignes sans conflit — l'unicité de
 l'UPC est *prouvée* par le chargement, pas supposée. Toute jointure ou
 déduplication par titre aurait silencieusement perdu ou fusionné un livre.
