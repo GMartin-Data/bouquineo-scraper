@@ -61,6 +61,18 @@ aucun ≥ HIGH. Corrigés : affirmation fausse dans notes_obs ([1]), conninfo
 interpolée → kwargs psycopg ([2]), `__future__` manquants ([3]). Ouverts :
 [4]-[6] (conventions, voir « Prochaine session »).
 
+### Fact-check final contre le verbatim du brief
+
+Relecture méticuleuse du § Livrables en toute fin de J2 : **le jeu collecté
+n'était pas dans le repo** — le `.gitignore` excluait `data/*.jsonl` avec un
+`git add -f` planifié « en fin de D2 »… qu'on allait oublier. Corrigé
+(listing + books commités), puis test de la ligne 60 du brief exécuté :
+re-clone vierge → `uv sync` → 19 tests verts, 6 contracts OK, et
+`crawl books -a limit=2` qui annonce `Resume: 1000 books already collected`
+sans émettre une requête — le dataset commité sert d'état de reprise même à
+travers un re-clone. (Pour montrer un crawl réel depuis un clone : déplacer
+`data/books.jsonl` d'abord.)
+
 ### Blocages / résolutions
 
 ### Blocages / résolutions
