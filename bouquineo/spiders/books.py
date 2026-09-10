@@ -7,6 +7,8 @@ line to data/books.jsonl — the file that will double as resume state.
 Run: uv run scrapy crawl books   → data/books.jsonl
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 from typing import ClassVar

@@ -5,6 +5,8 @@ was collected. The books spider resumes by diffing its input URLs against
 this set at startup.
 """
 
+from __future__ import annotations
+
 import json
 from pathlib import Path
 
