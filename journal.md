@@ -1,17 +1,22 @@
 # Journal de bord — Brief scraping Bouquineo
 
-## Prochaine session (démo)
+## Prochaine session (échange, pas de démo)
 
-État : **projet fonctionnellement clos** — chaîne complète listing → books →
-Postgres, robustesse prouvée, livrables rédigés. Reste pour la démo :
+État : **projet clos** — chaîne complète listing → books → Postgres,
+robustesse prouvée, livrables rédigés, tout poussé. Changement de format
+(décidé fin J2) : pas de démo à présenter — la restitution sera un
+**échange autour de la proposition d'un collègue** (éléments non encore
+communiqués : sujet/dépôt à renseigner ici dès connus).
 
-- Répétition : dérouler les auto-tests des notes 02, 06, 07, 08 ; savoir
-  rejouer la séquence de preuve (crawl `-a limit=N` ×2 → reprise visible,
-  `db/load.py` ×2 → idempotence).
+- Préparation : relire les « Leçons » des notes 02, 06, 07, 08 comme
+  **checklist de questions à poser** au projet du collègue (reprise par
+  l'état de sortie, deux clés/deux moments, garde-fous réellement câblés,
+  politesse justifiée, champs morts/profiling).
+- La séquence de preuve live (`-a limit=5` ×2, `load.py` ×2) devient sans
+  objet ; reste disponible si l'échange s'y prête.
 - Findings [4]-[6] de la code-review laissés ouverts (arbitrages de
   convention : type hints sur callbacks Scrapy, `print()` de sortie de
   script, `assert` sous `-O`) — non bloquants, à trancher hors brief.
-- `tasks/lessons-inbox.md` versionné (décision fin J2).
 
 ## J2 — 2026-09-10
 
