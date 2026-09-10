@@ -51,15 +51,17 @@ class BooksSpider(scrapy.Spider):
         if seen:
             self.logger.info("Resume: %d books already collected, skipping them", len(seen))
         emitted = 0
-        for line in self.listing_path.read_text(encoding="utf-8").splitlines():
-            url = json.loads(line)["url"]
-            if url in seen:
-                continue
-            if self.limit is not None and emitted >= self.limit:
-                self.logger.info("Sample mode: stopping after %d new pages", self.limit)
-                break
-            emitted += 1
-            yield scrapy.Request(url, callback=self.parse, errback=self.on_error)
+        # File iteration, not splitlines(): see the warning in resume.py.
+        with self.listing_path.open(encoding="utf-8") as file:
+            for line in file:
+                url = json.loads(line)["url"]
+                if url in seen:
+                    continue
+                if self.limit is not None and emitted >= self.limit:
+                    self.logger.info("Sample mode: stopping after %d new pages", self.limit)
+                    break
+                emitted += 1
+                yield scrapy.Request(url, callback=self.parse, errback=self.on_error)
 
     def parse(self, response):
         """Extract every enriched field of one product page.

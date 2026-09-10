@@ -35,6 +35,20 @@ def test_truncated_last_line(tmp_path):
     assert seen_urls(path) == {"https://site/book-1"}
 
 
+def test_unicode_line_separator_in_description(tmp_path):
+    # U+2028/U+2029 appear RAW inside real descriptions (json.dumps with
+    # ensure_ascii=False does not escape them). They are NOT line breaks:
+    # the line must parse and its url must count as seen — regression test
+    # for the str.splitlines() bug found while loading the full catalogue.
+    path = tmp_path / "books.jsonl"
+    description = "part one\u2028part two\u2029end"
+    path.write_text(
+        f'{{"description": "{description}", "url": "https://site/book-1"}}\n',
+        encoding="utf-8",
+    )
+    assert seen_urls(path) == {"https://site/book-1"}
+
+
 def test_line_without_url_key(tmp_path):
     # Valid JSON but no url field: unusable as state, skip it silently.
     path = tmp_path / "books.jsonl"

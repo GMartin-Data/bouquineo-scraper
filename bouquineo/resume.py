@@ -20,9 +20,14 @@ def seen_urls(path: Path) -> set[str]:
     if not path.exists():
         return set()
     urls: set[str] = set()
-    for line in path.read_text(encoding="utf-8").splitlines():
-        try:
-            urls.add(json.loads(line)["url"])
-        except (json.JSONDecodeError, KeyError, TypeError):
-            continue  # truncated or malformed line: redoing one request is cheap
+    # Iterate the open file, NOT read_text().splitlines(): splitlines() also
+    # breaks on Unicode separators (U+2028/U+2029) that legally appear RAW
+    # inside JSON strings — which would shred valid lines and cause endless
+    # re-crawls of the same books. File iteration splits on \n only.
+    with path.open(encoding="utf-8") as file:
+        for line in file:
+            try:
+                urls.add(json.loads(line)["url"])
+            except (json.JSONDecodeError, KeyError, TypeError):
+                continue  # truncated or malformed line: redoing one request is cheap
     return urls
