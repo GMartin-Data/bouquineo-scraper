@@ -47,15 +47,21 @@ UPSERT = f"""
 """
 
 
-def conninfo() -> str:
-    """Build the connection string from .env (fails loudly on a missing key)."""
+def db_connection() -> psycopg.Connection:
+    """Open a connection with parameters from .env (fails loudly on a missing key).
+
+    Parameters are passed as kwargs, never interpolated into a conninfo
+    string: values containing spaces or quotes would break the string
+    parsing (or inject extra connection parameters) — kwargs need no
+    escaping at all.
+    """
     load_dotenv()
-    return (
-        f"host={os.environ['POSTGRES_HOST']} "
-        f"port={os.environ['POSTGRES_PORT']} "
-        f"dbname={os.environ['POSTGRES_DB']} "
-        f"user={os.environ['POSTGRES_USER']} "
-        f"password={os.environ['POSTGRES_PASSWORD']}"
+    return psycopg.connect(
+        host=os.environ["POSTGRES_HOST"],
+        port=os.environ["POSTGRES_PORT"],
+        dbname=os.environ["POSTGRES_DB"],
+        user=os.environ["POSTGRES_USER"],
+        password=os.environ["POSTGRES_PASSWORD"],
     )
 
 
@@ -67,7 +73,7 @@ def main() -> None:
     # psycopg types queries as LiteralString to flag injection risks; our
     # schema and upsert are repo-owned text, so the casts are legitimate.
     schema = cast("LiteralString", SCHEMA_PATH.read_text(encoding="utf-8"))
-    with psycopg.connect(conninfo()) as conn, conn.cursor() as cur:
+    with db_connection() as conn, conn.cursor() as cur:
         cur.execute(schema)
         cur.executemany(cast("LiteralString", UPSERT), books)
         row = cur.execute("SELECT count(*) FROM books").fetchone()
