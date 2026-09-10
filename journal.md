@@ -1,26 +1,62 @@
 # Journal de bord — Brief scraping Bouquineo
 
-## Prochaine session (J2)
+## Prochaine session (démo)
 
-État : jalon J1 atteint et commité (1 000 livres dans `data/listing.jsonl`,
-tests verts, historique poussé). Programme J2, dans l'ordre
-(roadmap détaillée : `../brief_scraping/notes/00-roadmap-previsionnelle.md`) :
+État : **projet fonctionnellement clos** — chaîne complète listing → books →
+Postgres, robustesse prouvée, livrables rédigés. Reste pour la démo :
 
-1. Spider `books` : un livre enrichi de bout en bout (UPC, prix, taxe, stock
-   réel, avis, description, catégorie), vérifié contre le navigateur, puis
-   généralisation. Sélecteurs déjà cartographiés dans la note 02.
-2. Robustesse — le cœur évalué du brief : reprise par relecture du JSONL dans
-   `async start()` (clé = URL, cf. « deux clés, deux moments » note 02),
-   errback + erreurs journalisées/sautées, mode échantillon `-a limit=N`.
-3. Crawl complet (~10 min) + test d'interruption volontaire (Ctrl-C, relance,
-   preuve de reprise dans les logs).
-4. Si le rythme tient : PostgreSQL (`db/schema.sql` + `db/load.py`, upsert
-   `ON CONFLICT (upc)`) — sinon glisse en J3 sans douleur.
-
-Rappel outillage : Postgres pas encore démarré (`cp env.example .env` puis
-`docker compose up -d`, à faire au moment du point 4).
+- Répétition : dérouler les auto-tests des notes 02, 06, 07, 08 ; savoir
+  rejouer la séquence de preuve (crawl `-a limit=N` ×2 → reprise visible,
+  `db/load.py` ×2 → idempotence).
+- Findings [4]-[6] de la code-review laissés ouverts (arbitrages de
+  convention : type hints sur callbacks Scrapy, `print()` de sortie de
+  script, `assert` sous `-O`) — non bloquants, à trancher hors brief.
+- `tasks/lessons-inbox.md` non versionné : décider s'il entre au dépôt.
 
 ## J2 — 2026-09-10
+
+### Programme réalisé (les 4 points, dans l'ordre)
+
+1. **Spider `books`** (entamé fin J1) : les 11 champs enrichis parsés de bout
+   en bout — table th/td lue en dict, décodeurs purs (`parse_count` ajouté,
+   test-first), fiche témoin vérifiée champ à champ contre le navigateur
+   (`scrapy parse`), 3 contracts live.
+2. **Robustesse** : reprise par relecture de `books.jsonl` dans `start()`
+   (`seen_urls`, ne lève jamais — testée fichier absent / ligne tronquée /
+   séparateurs Unicode) ; seuil d'échecs **déplacé dans l'errback** —
+   découverte vérifiée à la source : `CLOSESPIDER_ERRORCOUNT` n'écoute que
+   les exceptions de callback, il ne compterait rien avec notre parsing
+   tolérant (`max_failures = 10` + `CloseSpider`, le réglage Scrapy reste en
+   filet anti-bug) ; mode `-a limit=N` compté *après* le filtre de reprise
+   (deux runs `limit=5` → livres 1-5 puis 6-10, démontré en live).
+3. **Crawl complet + interruption** : SIGINT en plein vol via `timeout`
+   (arrêt brutal — double signal, cf. note 07) puis kill d'un second run →
+   1 000 livres collectés en 3 runs (84 + 23 + 893), reprise loggée à chaque
+   relance, **0 échec réseau**, 1 000 UPC et URLs distincts.
+4. **PostgreSQL** : `db/schema.sql` (NUMERIC pour l'argent, CHECK sur rating,
+   NULL stock = inconnu) + `db/load.py` (psycopg3, upsert `ON CONFLICT
+   (upc)`, transaction unique, lecture stricte fail-fast). **Idempotence
+   prouvée** : deux chargements → 1 000 rows les deux fois.
+
+### Réponses du brief (détail : notes_obs.md, commitée)
+
+- **Ruptures : aucune** (stock 1-22, zéro « Out of stock ») ; le signal
+  réassort est le stock faible : **420 titres ≤ 5, dont 98 à l'unité**.
+- **Mieux notés** : 196 titres à 5 étoiles ; par catégorie (≥ 10 livres) :
+  Poetry 3,53 — distribution des notes quasi uniforme (données générées).
+- **Champs morts confirmés n=1000** : tax = 0, num_reviews = 0, HT = TTC.
+- **Doublon de titre prévu par le brief trouvé** : « The Star-Touched
+  Queen » ×2 (999 titres distincts / 1 000 UPC) — même catégorie, seuls
+  UPC/prix/stock les distinguent.
+
+### Rituel de clôture
+
+`/code-review high` sur la plage du jour (`6dda759..HEAD`) : 6 findings,
+aucun ≥ HIGH. Corrigés : affirmation fausse dans notes_obs ([1]), conninfo
+interpolée → kwargs psycopg ([2]), `__future__` manquants ([3]). Ouverts :
+[4]-[6] (conventions, voir « Prochaine session »).
+
+### Blocages / résolutions
 
 ### Blocages / résolutions
 
