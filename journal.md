@@ -20,6 +20,35 @@ tests verts, historique poussé). Programme J2, dans l'ordre
 Rappel outillage : Postgres pas encore démarré (`cp env.example .env` puis
 `docker compose up -d`, à faire au moment du point 4).
 
+## J2 — 2026-09-10
+
+### Blocages / résolutions
+
+- **`splitlines()` casse du JSONL valide (U+2028/U+2029)** — `db/load.py`
+  plante à sa première exécution (`JSONDecodeError: Unterminated string`)
+  alors que `wc -l` et `jq` voient 1 000 lignes parfaitement valides. Le
+  fichier est sain ; c'est la *lecture* qui casse : `str.splitlines()` coupe
+  sur la définition **Unicode** de la ligne — donc aussi sur U+2028 (LINE
+  SEPARATOR) et U+2029 (PARAGRAPH SEPARATOR), présents **bruts** dans deux
+  descriptions (« Batman: Europa », « Having the Barbarian's Baby ») parce
+  que `json.dumps(..., ensure_ascii=False)` ne les échappe pas — JSON
+  légal. Résultat : 1 000 lignes réelles → 1 003 « lignes » Python, dont 5
+  fragments imparsables.
+  - **Gravité au-delà du loader** : le même idiome vivait dans `seen_urls`
+    (reprise) — ces 2 URLs n'étaient jamais reconnues « vues », donc
+    re-crawlées **et dupliquées à chaque reprise**. Invisible sur notre
+    fichier final uniquement parce que les 2 livres sont tombés dans le
+    dernier run, sans reprise après eux. Troisième site touché : le
+    `start()` du spider (lecture de `listing.jsonl`).
+  - **Fix** : itérer le fichier ouvert (`for line in file`), qui ne coupe
+    que sur `\n` — trois sites corrigés d'un même geste, test de régression
+    avec `\u2028`/`\u2029` littéraux, double chargement revérifié
+    (1 000 lignes → 1 000 rows, deux fois).
+  - **Leçon** : « ligne » a deux définitions — celle du contrat JSONL
+    (`\n` seul) et celle d'Unicode (`splitlines()`). `jq` lisait la
+    première, Python la seconde ; le bug vivait dans l'écart. Détail
+    complet : note 07, section « Le contrat JSONL ».
+
 ## J1 — 2026-09-09
 
 ### Décisions de cadrage (avant-projet, 2026-09-08)
