@@ -30,8 +30,10 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 1
 
 # --- Robustness (brief: how many failures before giving up?) --------------
 
-# 10 errors ≈ 1% of the catalogue: above that, the site has likely changed
-# and every further request is wasted — stop and investigate.
+# NB: this only counts CALLBACK exceptions (spider_error signal) — failed
+# requests never reach it. The "10 failures ≈ 1% → give up" guard therefore
+# lives in the books spider's errback (max_failures + CloseSpider); this
+# setting stays as a safety net against genuine code bugs in callbacks.
 CLOSESPIDER_ERRORCOUNT = 10
 
 # --- Output ---------------------------------------------------------------

@@ -12,9 +12,11 @@ from pathlib import Path
 from typing import ClassVar
 
 import scrapy
+from scrapy.exceptions import CloseSpider
 
 from bouquineo.items import BookItem
 from bouquineo.parsing import parse_count, parse_price, parse_rating, parse_stock
+from bouquineo.resume import seen_urls
 
 
 class BooksSpider(scrapy.Spider):
@@ -22,11 +24,42 @@ class BooksSpider(scrapy.Spider):
     allowed_domains: ClassVar[list[str]] = ["books.toscrape.com"]
 
     listing_path = Path("data") / "listing.jsonl"
+    # Must match the pipeline's data/<spider.name>.jsonl convention.
+    output_path = Path("data") / "books.jsonl"
+
+    # 10 failed requests ≈ 1% of the catalogue: above that the site has
+    # likely changed and every further request is wasted — stop and
+    # investigate. Enforced in the errback (see on_error).
+    max_failures = 10
+
+    def __init__(self, *args, limit=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Sample mode (-a limit=N): cap the NEW pages of this run. Counted
+        # after the resume filter, so successive limited runs advance
+        # through the catalogue instead of redoing the same pages.
+        self.limit = int(limit) if limit is not None else None
+        self.failures = 0
 
     async def start(self):
-        """Emit one request per product URL collected by the listing spider."""
+        """Emit one request per listing URL not already collected.
+
+        A malformed listing.jsonl crashes loudly here, BEFORE any request:
+        the D1 output is this spider's input contract — better fail fast
+        than crawl on corrupt fuel.
+        """
+        seen = seen_urls(self.output_path)
+        if seen:
+            self.logger.info("Resume: %d books already collected, skipping them", len(seen))
+        emitted = 0
         for line in self.listing_path.read_text(encoding="utf-8").splitlines():
-            yield scrapy.Request(json.loads(line)["url"], callback=self.parse)
+            url = json.loads(line)["url"]
+            if url in seen:
+                continue
+            if self.limit is not None and emitted >= self.limit:
+                self.logger.info("Sample mode: stopping after %d new pages", self.limit)
+                break
+            emitted += 1
+            yield scrapy.Request(url, callback=self.parse, errback=self.on_error)
 
     def parse(self, response):
         """Extract every enriched field of one product page.
@@ -58,3 +91,26 @@ class BooksSpider(scrapy.Spider):
             description=response.css("#product_description ~ p::text").get(),
             url=response.url,
         )
+
+    def on_error(self, failure):
+        """Log a failed request and move on — one bad page must not kill the crawl.
+
+        The systemic-failure guard lives here: CLOSESPIDER_ERRORCOUNT only
+        counts callback exceptions (verified in the Scrapy source), which our
+        tolerant parsing never raises — so the errback counts failures itself
+        and closes the spider past the threshold.
+        """
+        self.failures += 1
+        self.logger.error(
+            "Request failed (%d/%d), skipping: %s — %s",
+            self.failures,
+            self.max_failures,
+            failure.request.url,
+            failure.value,
+        )
+        if self.failures >= self.max_failures:
+            raise CloseSpider("too_many_failed_requests")
+
+    def closed(self, reason):
+        """Log the crawl summary: how it ended and how many requests failed."""
+        self.logger.info("Crawl finished (%s): %d failed requests", reason, self.failures)
