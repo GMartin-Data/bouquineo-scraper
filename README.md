@@ -5,7 +5,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)
 ![uv](https://img.shields.io/badge/env-uv-DE5FE9)
-![Tests](https://img.shields.io/badge/tests-19_passed-brightgreen)
+![pytest](https://img.shields.io/badge/pytest-19_passed-0A9EDC?logo=pytest&logoColor=white)
 
 Scrapes the public catalogue of a competitor bookstore
 ([books.toscrape.com](https://books.toscrape.com), a legal training sandbox —
