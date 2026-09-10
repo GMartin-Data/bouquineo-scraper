@@ -11,7 +11,7 @@ Postgres, robustesse prouvée, livrables rédigés. Reste pour la démo :
 - Findings [4]-[6] de la code-review laissés ouverts (arbitrages de
   convention : type hints sur callbacks Scrapy, `print()` de sortie de
   script, `assert` sous `-O`) — non bloquants, à trancher hors brief.
-- `tasks/lessons-inbox.md` non versionné : décider s'il entre au dépôt.
+- `tasks/lessons-inbox.md` versionné (décision fin J2).
 
 ## J2 — 2026-09-10
 
