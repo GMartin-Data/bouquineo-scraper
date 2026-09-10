@@ -3,6 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white)
 ![Scrapy](https://img.shields.io/badge/Scrapy-2.18-60A839)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-compose-2496ED?logo=docker&logoColor=white)
 ![uv](https://img.shields.io/badge/env-uv-DE5FE9)
 ![Tests](https://img.shields.io/badge/tests-19_passed-brightgreen)
 
